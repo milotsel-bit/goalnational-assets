@@ -498,6 +498,26 @@ function startMemberSystem() {
       setBusy(deleteAccountButton, false);
     }
   });
+  upgradeButton.addEventListener("click", async (event) => {
+  event.preventDefault();
+
+  setBusy(upgradeButton, true);
+  clearMessage();
+
+  try {
+    const data = await callGoalProBackend("/create-checkout-session");
+
+    window.location.href = data.url;
+  } catch (error) {
+    console.error(error);
+
+    showMessage(
+      error.message || "Stripe Checkout could not be opened."
+    );
+  } finally {
+    setBusy(upgradeButton, false);
+  }
+});
 
   logoutButton.addEventListener("click", async () => {
     try {
