@@ -324,8 +324,7 @@ function startMemberSystem() {
     clearMessage();
 
     try {
-      const credential = await signInWithPopup(auth, googleProvider);
-      await createBasicProfile(credential.user);
+      await signInWithPopup(auth, googleProvider);
     } catch (error) {
       console.error(error);
 
