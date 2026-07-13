@@ -129,7 +129,34 @@ function injectInterface() {
     </div>
   `);
 }
+function loadAds() {
 
+  // Never load ads for Pro members
+  if (document.body.classList.contains("gn-pro-member")) return;
+
+  const ads = [
+    {
+      zone: "10959348",
+      src: "https://n6wxm.com/vignette.min.js"
+    },
+    {
+      zone: "10959349",
+      src: "https://nap5k.com/tag.min.js"
+    },
+    {
+      zone: "10959350",
+      src: "https://al5sm.com/tag.min.js"
+    }
+  ];
+
+  ads.forEach(ad => {
+    const script = document.createElement("script");
+    script.dataset.zone = ad.zone;
+    script.src = ad.src;
+    document.head.appendChild(script);
+  });
+
+}
 function startMemberSystem() {
   loadStylesheet();
   injectInterface();
@@ -532,29 +559,43 @@ function startMemberSystem() {
   setPersistence(auth, browserLocalPersistence).catch(console.error);
 
   onAuthStateChanged(auth, async (user) => {
-    clearMessage();
+  clearMessage();
 
-    if (user) {
-      try {
-        await createBasicProfile(user);
-        await loadMembership(user);
-        forms.style.display = "none";
-        memberArea.style.display = "block";
-        memberButton.textContent = user.displayName || "My Account";
-      } catch (error) {
-        console.error(error);
-        showMessage("Your profile could not be loaded.");
+  if (user) {
+    try {
+      await createBasicProfile(user);
+      await loadMembership(user);
+
+      forms.style.display = "none";
+      memberArea.style.display = "block";
+      memberButton.textContent = user.displayName || "My Account";
+
+      // Load ads only for free members
+      if (!document.body.classList.contains("gn-pro-member")) {
+        loadAds();
       }
-    } else {
-      document.body.classList.remove("gn-pro-member");
-      forms.style.display = "block";
-      memberArea.style.display = "none";
-      profilePanel.style.display = "none";
-      memberButton.textContent = "Login / Goal Pro";
-      setMode(false);
+
+    } catch (error) {
+      console.error(error);
+      showMessage("Your profile could not be loaded.");
+
+      // Fallback: load ads if membership check fails
+      loadAds();
     }
-  });
-}
+
+  } else {
+    document.body.classList.remove("gn-pro-member");
+
+    forms.style.display = "block";
+    memberArea.style.display = "none";
+    profilePanel.style.display = "none";
+    memberButton.textContent = "Login / Goal Pro";
+    setMode(false);
+
+    // Logged-out visitors see ads
+    loadAds();
+  }
+});
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", startMemberSystem);
