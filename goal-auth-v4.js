@@ -132,42 +132,31 @@ function injectInterface() {
 let goalNationalAdsLoaded = false;
 
 function loadAds() {
-
   if (goalNationalAdsLoaded) return;
 
   if (document.body.classList.contains("gn-pro-member")) {
-    console.log("GoalNational: Pro member detected - ads disabled.");
+    console.log("Pro member - ads disabled");
     return;
   }
 
   goalNationalAdsLoaded = true;
 
-  const ads = [
-    {
-      zone: "10959348",
-      src: "https://n6wxm.com/vignette.min.js"
-    },
-    {
-      zone: "10959349",
-      src: "https://nap5k.com/tag.min.js"
-    },
-    {
-      zone: "10959350",
-      src: "https://al5sm.com/tag.min.js"
-    }
-  ];
+  function inject(zone, src) {
+    (function (s) {
+      s.dataset.zone = zone;
+      s.src = src;
+    })(
+      [document.documentElement, document.body]
+        .filter(Boolean)
+        .pop()
+        .appendChild(document.createElement("script"))
+    );
+  }
 
-  ads.forEach(({ zone, src }) => {
-    const script = document.createElement("script");
-    script.dataset.zone = zone;
-    script.src = src;
-    script.async = true;
-
-    script.onload = () => console.log("Ad loaded:", zone);
-    script.onerror = () => console.error("Ad failed:", zone);
-
-    document.body.appendChild(script);
-  });
+  inject("10959348", "https://n6wxm.com/vignette.min.js");
+  inject("10959349", "https://nap5k.com/tag.min.js");
+  inject("10959350", "https://al5sm.com/tag.min.js");
+}
 
 }
 function startMemberSystem() {
