@@ -134,6 +134,35 @@ function startMemberSystem() {
   loadStylesheet();
   injectInterface();
 
+  async function callGoalProBackend(path) {
+  const user = auth.currentUser;
+
+  if (!user) {
+    throw new Error("Please log in first.");
+  }
+
+  const idToken = await user.getIdToken(true);
+
+  const response = await fetch(
+    `https://goalnational-stripe.milotsel.workers.dev${path}`,
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${idToken}`,
+        "Content-Type": "application/json"
+      }
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || "The request failed.");
+  }
+
+  return data;
+}
+
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
