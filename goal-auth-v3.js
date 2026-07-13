@@ -480,11 +480,6 @@ function startMemberSystem() {
     }
   });
 
-  upgradeButton.addEventListener("click", (event) => {
-    event.preventDefault();
-    alert("GoalNational Pro payments will be connected in the next step.");
-  });
-
   setPersistence(auth, browserLocalPersistence).catch(console.error);
 
   onAuthStateChanged(auth, async (user) => {
