@@ -129,10 +129,18 @@ function injectInterface() {
     </div>
   `);
 }
+let goalNationalAdsLoaded = false;
+
 function loadAds() {
 
-  // Never load ads for Pro members
-  if (document.body.classList.contains("gn-pro-member")) return;
+  if (goalNationalAdsLoaded) return;
+
+  if (document.body.classList.contains("gn-pro-member")) {
+    console.log("GoalNational: Pro member detected - ads disabled.");
+    return;
+  }
+
+  goalNationalAdsLoaded = true;
 
   const ads = [
     {
@@ -149,11 +157,16 @@ function loadAds() {
     }
   ];
 
-  ads.forEach(ad => {
+  ads.forEach(({ zone, src }) => {
     const script = document.createElement("script");
-    script.dataset.zone = ad.zone;
-    script.src = ad.src;
-    document.head.appendChild(script);
+    script.dataset.zone = zone;
+    script.src = src;
+    script.async = true;
+
+    script.onload = () => console.log("Ad loaded:", zone);
+    script.onerror = () => console.error("Ad failed:", zone);
+
+    document.body.appendChild(script);
   });
 
 }
