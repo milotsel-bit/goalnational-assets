@@ -1,0 +1,203 @@
+#gnMemberButton {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 99998;
+  border: 0;
+  border-radius: 30px;
+  padding: 13px 20px;
+  background: #111827;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .28);
+}
+
+#gnMemberButton:hover {
+  transform: translateY(-1px);
+}
+
+#gnAuthOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(0, 0, 0, .72);
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  box-sizing: border-box;
+}
+
+#gnAuthBox {
+  width: 100%;
+  max-width: 410px;
+  background: #111827;
+  color: #ffffff;
+  border-radius: 18px;
+  padding: 26px;
+  box-sizing: border-box;
+  box-shadow: 0 20px 70px rgba(0, 0, 0, .5);
+  position: relative;
+  font-family: Arial, sans-serif;
+}
+
+#gnAuthClose {
+  position: absolute;
+  right: 15px;
+  top: 12px;
+  background: transparent;
+  border: 0;
+  color: #ffffff;
+  font-size: 28px;
+  cursor: pointer;
+}
+
+#gnAuthBox h2 {
+  margin: 0 0 8px;
+  font-size: 25px;
+}
+
+#gnAuthSubtitle {
+  margin: 0 0 20px;
+  color: #aeb8c8;
+  font-size: 14px;
+}
+
+.gnAuthInput {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 13px;
+  background: #1e293b;
+  color: #ffffff;
+  outline: none;
+}
+
+.gnAuthInput:focus {
+  border-color: #60a5fa;
+}
+
+.gnPrimaryButton,
+.gnGoogleButton,
+.gnLogoutButton {
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  padding: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.gnPrimaryButton {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.gnGoogleButton {
+  background: #ffffff;
+  color: #111827;
+}
+
+.gnLogoutButton {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+#gnAuthSwitch {
+  text-align: center;
+  margin-top: 17px;
+  color: #cbd5e1;
+  font-size: 14px;
+}
+
+#gnAuthSwitch button {
+  border: 0;
+  background: transparent;
+  color: #60a5fa;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+#gnAuthMessage {
+  display: none;
+  margin-top: 13px;
+  padding: 11px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+#gnMemberArea {
+  display: none;
+  text-align: center;
+}
+
+#gnMemberPhoto {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 10px;
+  background: #334155;
+}
+
+#gnMemberName {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+#gnMemberEmail {
+  color: #aeb8c8;
+  font-size: 14px;
+  word-break: break-word;
+}
+
+#gnMembershipBadge {
+  display: inline-block;
+  margin: 16px 0 10px;
+  border-radius: 20px;
+  padding: 8px 14px;
+  background: #374151;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+#gnUpgradeButton {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  text-decoration: none;
+  text-align: center;
+  border-radius: 10px;
+  padding: 13px;
+  margin-top: 10px;
+  background: #f59e0b;
+  color: #111827;
+  font-weight: 800;
+}
+
+body.gn-pro-member .gn-ad,
+body.gn-pro-member .adsbygoogle,
+body.gn-pro-member [data-ad-client],
+body.gn-pro-member .widget.AdSense {
+  display: none !important;
+}
+
+@media (max-width: 500px) {
+  #gnMemberButton {
+    right: 12px;
+    bottom: 12px;
+  }
+
+  #gnAuthBox {
+    padding: 24px 18px;
+  }
+}
