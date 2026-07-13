@@ -2,10 +2,16 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebas
 import {
   getAuth,
   GoogleAuthProvider,
+  EmailAuthProvider,
   signInWithPopup,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   updateProfile,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  reauthenticateWithPopup,
+  reauthenticateWithCredential,
+  deleteUser,
   signOut,
   onAuthStateChanged,
   setPersistence,
@@ -16,6 +22,8 @@ import {
   doc,
   getDoc,
   setDoc,
+  updateDoc,
+  deleteDoc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
@@ -30,11 +38,10 @@ const firebaseConfig = {
 };
 
 const CSS_URL =
-  "https://cdn.jsdelivr.net/gh/milotsel-bit/goalnational-assets@main/goal-auth.css";
+  "https://cdn.jsdelivr.net/gh/milotsel-bit/goalnational-assets@main/goal-auth.css?v=4";
 
 function loadStylesheet() {
   if (document.querySelector('link[data-gn-auth-css="true"]')) return;
-
   const link = document.createElement("link");
   link.rel = "stylesheet";
   link.href = CSS_URL;
@@ -45,64 +52,82 @@ function loadStylesheet() {
 function injectInterface() {
   if (document.getElementById("gnMemberButton")) return;
 
-  document.body.insertAdjacentHTML(
-    "beforeend",
-    `
-      <button id="gnMemberButton" type="button">Login / Goal Pro</button>
+  document.body.insertAdjacentHTML("beforeend", `
+    <button id="gnMemberButton" type="button">Login / Goal Pro</button>
 
-      <div id="gnAuthOverlay" aria-hidden="true">
-        <div id="gnAuthBox" role="dialog" aria-modal="true" aria-labelledby="gnAuthTitle">
-          <button id="gnAuthClose" type="button" aria-label="Close">&times;</button>
+    <div id="gnAuthOverlay" aria-hidden="true">
+      <div id="gnAuthBox" role="dialog" aria-modal="true" aria-labelledby="gnAuthTitle">
+        <button id="gnAuthClose" type="button" aria-label="Close">&times;</button>
 
-          <div id="gnAuthForms">
-            <h2 id="gnAuthTitle">Welcome back</h2>
-            <p id="gnAuthSubtitle">Log in to your GoalNational account.</p>
+        <div id="gnAuthForms">
+          <h2 id="gnAuthTitle">Welcome back</h2>
+          <p id="gnAuthSubtitle">Log in to your GoalNational account.</p>
 
-            <input id="gnName" class="gnAuthInput" type="text"
-              placeholder="Your name" autocomplete="name" style="display:none;" />
+          <input id="gnName" class="gnAuthInput" type="text" placeholder="Your name"
+            autocomplete="name" style="display:none;" />
+          <input id="gnEmail" class="gnAuthInput" type="email" placeholder="Email address"
+            autocomplete="email" />
+          <input id="gnPassword" class="gnAuthInput" type="password" placeholder="Password"
+            autocomplete="current-password" />
 
-            <input id="gnEmail" class="gnAuthInput" type="email"
-              placeholder="Email address" autocomplete="email" />
+          <button id="gnEmailAction" class="gnPrimaryButton" type="button">Log in</button>
+          <button id="gnGoogleLogin" class="gnGoogleButton" type="button">Continue with Google</button>
 
-            <input id="gnPassword" class="gnAuthInput" type="password"
-              placeholder="Password" autocomplete="current-password" />
-
-            <button id="gnEmailAction" class="gnPrimaryButton" type="button">
-              Log in
-            </button>
-
-            <button id="gnGoogleLogin" class="gnGoogleButton" type="button">
-              Continue with Google
-            </button>
-
-            <div id="gnAuthSwitch">
-              <span id="gnSwitchText">No account?</span>
-              <button id="gnSwitchMode" type="button">Create one</button>
-            </div>
+          <div id="gnAuthSwitch">
+            <span id="gnSwitchText">No account?</span>
+            <button id="gnSwitchMode" type="button">Create one</button>
           </div>
-
-          <div id="gnMemberArea">
-            <img id="gnMemberPhoto" alt="Profile"
-              src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/default-avatar.png" />
-
-            <div id="gnMemberName">GoalNational Member</div>
-            <div id="gnMemberEmail"></div>
-            <div id="gnMembershipBadge">FREE MEMBER</div>
-
-            <a id="gnUpgradeButton" href="#">
-              Upgrade to GoalNational Pro
-            </a>
-
-            <button id="gnLogoutButton" class="gnLogoutButton" type="button">
-              Log out
-            </button>
-          </div>
-
-          <div id="gnAuthMessage"></div>
         </div>
+
+        <div id="gnMemberArea">
+          <img id="gnMemberPhoto" alt="Profile"
+            src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/default-avatar.png" />
+          <div id="gnMemberName">GoalNational Member</div>
+          <div id="gnMemberEmail"></div>
+          <div id="gnMembershipBadge">FREE MEMBER</div>
+
+          <a id="gnUpgradeButton" href="#">Upgrade to GoalNational Pro</a>
+          <button id="gnEditProfileButton" class="gnSecondaryButton" type="button">Edit profile</button>
+
+          <div id="gnProfilePanel">
+            <div class="gnSectionTitle">Profile name</div>
+            <input id="gnEditName" class="gnAuthInput" type="text" placeholder="Display name" />
+
+            <div class="gnSectionTitle">Profile picture</div>
+            <input id="gnEditPhoto" class="gnAuthInput" type="url"
+              placeholder="Paste a direct image URL (https://...)" />
+
+            <button id="gnSaveProfile" class="gnPrimaryButton" type="button">Save profile</button>
+
+            <div class="gnDivider"></div>
+
+            <div class="gnStatusRow">
+              <span>Email verification</span>
+              <span id="gnEmailStatus" class="gnStatusWarn">Not verified</span>
+            </div>
+            <button id="gnVerifyEmail" class="gnSecondaryButton" type="button">
+              Send verification email
+            </button>
+
+            <div class="gnSectionTitle">Password</div>
+            <button id="gnResetPassword" class="gnSecondaryButton" type="button">
+              Send password-change email
+            </button>
+
+            <div class="gnDivider"></div>
+
+            <button id="gnDeleteAccount" class="gnDangerButton" type="button">
+              Delete account permanently
+            </button>
+          </div>
+
+          <button id="gnLogoutButton" class="gnLogoutButton" type="button">Log out</button>
+        </div>
+
+        <div id="gnAuthMessage"></div>
       </div>
-    `
-  );
+    </div>
+  `);
 }
 
 function startMemberSystem() {
@@ -114,27 +139,37 @@ function startMemberSystem() {
   const db = getFirestore(app);
   const googleProvider = new GoogleAuthProvider();
 
-  const memberButton = document.getElementById("gnMemberButton");
-  const overlay = document.getElementById("gnAuthOverlay");
-  const closeButton = document.getElementById("gnAuthClose");
-  const forms = document.getElementById("gnAuthForms");
-  const memberArea = document.getElementById("gnMemberArea");
-  const title = document.getElementById("gnAuthTitle");
-  const subtitle = document.getElementById("gnAuthSubtitle");
-  const nameInput = document.getElementById("gnName");
-  const emailInput = document.getElementById("gnEmail");
-  const passwordInput = document.getElementById("gnPassword");
-  const emailAction = document.getElementById("gnEmailAction");
-  const googleLogin = document.getElementById("gnGoogleLogin");
-  const switchModeButton = document.getElementById("gnSwitchMode");
-  const switchText = document.getElementById("gnSwitchText");
-  const logoutButton = document.getElementById("gnLogoutButton");
-  const memberPhoto = document.getElementById("gnMemberPhoto");
-  const memberName = document.getElementById("gnMemberName");
-  const memberEmail = document.getElementById("gnMemberEmail");
-  const membershipBadge = document.getElementById("gnMembershipBadge");
-  const upgradeButton = document.getElementById("gnUpgradeButton");
-  const messageBox = document.getElementById("gnAuthMessage");
+  const $ = (id) => document.getElementById(id);
+  const memberButton = $("gnMemberButton");
+  const overlay = $("gnAuthOverlay");
+  const closeButton = $("gnAuthClose");
+  const forms = $("gnAuthForms");
+  const memberArea = $("gnMemberArea");
+  const title = $("gnAuthTitle");
+  const subtitle = $("gnAuthSubtitle");
+  const nameInput = $("gnName");
+  const emailInput = $("gnEmail");
+  const passwordInput = $("gnPassword");
+  const emailAction = $("gnEmailAction");
+  const googleLogin = $("gnGoogleLogin");
+  const switchModeButton = $("gnSwitchMode");
+  const switchText = $("gnSwitchText");
+  const logoutButton = $("gnLogoutButton");
+  const memberPhoto = $("gnMemberPhoto");
+  const memberName = $("gnMemberName");
+  const memberEmail = $("gnMemberEmail");
+  const membershipBadge = $("gnMembershipBadge");
+  const upgradeButton = $("gnUpgradeButton");
+  const messageBox = $("gnAuthMessage");
+  const editProfileButton = $("gnEditProfileButton");
+  const profilePanel = $("gnProfilePanel");
+  const editName = $("gnEditName");
+  const editPhoto = $("gnEditPhoto");
+  const saveProfile = $("gnSaveProfile");
+  const emailStatus = $("gnEmailStatus");
+  const verifyEmail = $("gnVerifyEmail");
+  const resetPassword = $("gnResetPassword");
+  const deleteAccountButton = $("gnDeleteAccount");
 
   let registerMode = false;
 
@@ -162,11 +197,9 @@ function startMemberSystem() {
     messageBox.textContent = "";
   }
 
-  function setBusy(busy) {
-    emailAction.disabled = busy;
-    googleLogin.disabled = busy;
-    emailAction.style.opacity = busy ? ".6" : "1";
-    googleLogin.style.opacity = busy ? ".6" : "1";
+  function setBusy(button, busy) {
+    button.disabled = busy;
+    button.style.opacity = busy ? ".6" : "1";
   }
 
   function setMode(isRegister) {
@@ -208,23 +241,28 @@ function startMemberSystem() {
 
   async function loadMembership(user) {
     document.body.classList.remove("gn-pro-member");
-
     const snapshot = await getDoc(doc(db, "users", user.uid));
     const data = snapshot.exists() ? snapshot.data() : {};
 
-    const isPremium =
-      data.premium === true &&
-      data.subscriptionStatus === "ACTIVE";
+    const isPremium = data.premium === true && data.subscriptionStatus === "ACTIVE";
 
-    memberName.textContent =
-      user.displayName || data.displayName || "GoalNational Member";
-
+    memberName.textContent = user.displayName || data.displayName || "GoalNational Member";
     memberEmail.textContent = user.email || data.email || "";
-
-    memberPhoto.src =
-      user.photoURL ||
-      data.photoURL ||
+    memberPhoto.src = user.photoURL || data.photoURL ||
       "https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/default-avatar.png";
+
+    editName.value = user.displayName || data.displayName || "";
+    editPhoto.value = user.photoURL || data.photoURL || "";
+
+    if (user.emailVerified) {
+      emailStatus.textContent = "Verified";
+      emailStatus.className = "gnStatusGood";
+      verifyEmail.style.display = "none";
+    } else {
+      emailStatus.textContent = "Not verified";
+      emailStatus.className = "gnStatusWarn";
+      verifyEmail.style.display = "block";
+    }
 
     if (isPremium) {
       membershipBadge.textContent = "GOALNATIONAL PRO";
@@ -240,60 +278,50 @@ function startMemberSystem() {
     }
   }
 
+  async function reauthenticateCurrentUser() {
+    const user = auth.currentUser;
+    if (!user) throw new Error("No signed-in user.");
+
+    const providers = user.providerData.map((item) => item.providerId);
+
+    if (providers.includes("google.com")) {
+      await reauthenticateWithPopup(user, googleProvider);
+      return;
+    }
+
+    const password = window.prompt("Enter your current password to confirm:");
+    if (!password) throw new Error("Confirmation cancelled.");
+
+    const credential = EmailAuthProvider.credential(user.email, password);
+    await reauthenticateWithCredential(user, credential);
+  }
+
   memberButton.addEventListener("click", openModal);
   closeButton.addEventListener("click", closeModal);
-
   overlay.addEventListener("click", (event) => {
     if (event.target === overlay) closeModal();
   });
 
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && overlay.style.display === "flex") {
-      closeModal();
-    }
-  });
-
-  switchModeButton.addEventListener("click", () => {
-    setMode(!registerMode);
-  });
+  switchModeButton.addEventListener("click", () => setMode(!registerMode));
 
   emailAction.addEventListener("click", async () => {
     const email = emailInput.value.trim();
     const password = passwordInput.value;
     const suppliedName = nameInput.value.trim();
 
-    if (!email || !password) {
-      showMessage("Enter your email address and password.");
-      return;
-    }
+    if (!email || !password) return showMessage("Enter your email address and password.");
+    if (registerMode && !suppliedName) return showMessage("Enter your name.");
+    if (registerMode && password.length < 6)
+      return showMessage("Your password must contain at least 6 characters.");
 
-    if (registerMode && !suppliedName) {
-      showMessage("Enter your name.");
-      return;
-    }
-
-    if (registerMode && password.length < 6) {
-      showMessage("Your password must contain at least 6 characters.");
-      return;
-    }
-
-    setBusy(true);
+    setBusy(emailAction, true);
     clearMessage();
 
     try {
       if (registerMode) {
-        const credential = await createUserWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
-
-        await updateProfile(credential.user, {
-          displayName: suppliedName
-        });
-
+        const credential = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(credential.user, { displayName: suppliedName });
         await createBasicProfile(credential.user, suppliedName);
-        showMessage("Your account was created successfully.", true);
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
@@ -303,7 +331,6 @@ function startMemberSystem() {
       nameInput.value = "";
     } catch (error) {
       console.error(error);
-
       const messages = {
         "auth/email-already-in-use": "This email address is already registered.",
         "auth/invalid-email": "Enter a valid email address.",
@@ -312,31 +339,134 @@ function startMemberSystem() {
         "auth/too-many-requests": "Too many attempts. Please wait and try again.",
         "auth/operation-not-allowed": "This login method is not enabled in Firebase."
       };
-
       showMessage(messages[error.code] || "Something went wrong. Please try again.");
     } finally {
-      setBusy(false);
+      setBusy(emailAction, false);
     }
   });
 
   googleLogin.addEventListener("click", async () => {
-    setBusy(true);
+    setBusy(googleLogin, true);
     clearMessage();
-
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
       console.error(error);
-
       if (error.code !== "auth/popup-closed-by-user") {
-        showMessage(
-          error.code === "auth/unauthorized-domain"
-            ? "Add goalnational.com and www.goalnational.com to Firebase Authorized domains."
-            : "Google login could not be completed."
-        );
+        showMessage("Google login could not be completed.");
       }
     } finally {
-      setBusy(false);
+      setBusy(googleLogin, false);
+    }
+  });
+
+  editProfileButton.addEventListener("click", () => {
+    profilePanel.style.display =
+      profilePanel.style.display === "block" ? "none" : "block";
+  });
+
+  saveProfile.addEventListener("click", async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const newName = editName.value.trim();
+    const newPhoto = editPhoto.value.trim();
+
+    if (!newName) return showMessage("Your display name cannot be empty.");
+    if (newPhoto && !/^https:\/\//i.test(newPhoto))
+      return showMessage("The profile picture must use a secure https:// image URL.");
+
+    setBusy(saveProfile, true);
+    clearMessage();
+
+    try {
+      await updateProfile(user, {
+        displayName: newName,
+        photoURL: newPhoto || null
+      });
+
+      await updateDoc(doc(db, "users", user.uid), {
+        displayName: newName,
+        photoURL: newPhoto
+      });
+
+      await loadMembership(user);
+      memberButton.textContent = newName;
+      showMessage("Your profile was updated.", true);
+    } catch (error) {
+      console.error(error);
+      showMessage("Your profile could not be updated.");
+    } finally {
+      setBusy(saveProfile, false);
+    }
+  });
+
+  verifyEmail.addEventListener("click", async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    setBusy(verifyEmail, true);
+    clearMessage();
+
+    try {
+      await sendEmailVerification(user);
+      showMessage("Verification email sent. Check your inbox and spam folder.", true);
+    } catch (error) {
+      console.error(error);
+      showMessage("The verification email could not be sent.");
+    } finally {
+      setBusy(verifyEmail, false);
+    }
+  });
+
+  resetPassword.addEventListener("click", async () => {
+    const user = auth.currentUser;
+    if (!user?.email) return;
+
+    setBusy(resetPassword, true);
+    clearMessage();
+
+    try {
+      await sendPasswordResetEmail(auth, user.email);
+      showMessage("Password-change email sent. Check your inbox and spam folder.", true);
+    } catch (error) {
+      console.error(error);
+      showMessage("The password-change email could not be sent.");
+    } finally {
+      setBusy(resetPassword, false);
+    }
+  });
+
+  deleteAccountButton.addEventListener("click", async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const firstConfirm = window.confirm(
+      "This permanently deletes your GoalNational account. Continue?"
+    );
+    if (!firstConfirm) return;
+
+    const typed = window.prompt('Type DELETE to confirm permanently:');
+    if (typed !== "DELETE") return showMessage("Account deletion cancelled.");
+
+    setBusy(deleteAccountButton, true);
+    clearMessage();
+
+    try {
+      await reauthenticateCurrentUser();
+      await deleteDoc(doc(db, "users", user.uid));
+      await deleteUser(user);
+      closeModal();
+      alert("Your GoalNational account was permanently deleted.");
+    } catch (error) {
+      console.error(error);
+      showMessage(
+        error.code === "auth/wrong-password" || error.code === "auth/invalid-credential"
+          ? "The password was incorrect."
+          : "The account could not be deleted. Please log out, log in again, and retry."
+      );
+    } finally {
+      setBusy(deleteAccountButton, false);
     }
   });
 
@@ -355,9 +485,7 @@ function startMemberSystem() {
     alert("GoalNational Pro payments will be connected in the next step.");
   });
 
-  setPersistence(auth, browserLocalPersistence).catch((error) => {
-    console.error("Persistence error:", error);
-  });
+  setPersistence(auth, browserLocalPersistence).catch(console.error);
 
   onAuthStateChanged(auth, async (user) => {
     clearMessage();
@@ -366,7 +494,6 @@ function startMemberSystem() {
       try {
         await createBasicProfile(user);
         await loadMembership(user);
-
         forms.style.display = "none";
         memberArea.style.display = "block";
         memberButton.textContent = user.displayName || "My Account";
@@ -378,6 +505,7 @@ function startMemberSystem() {
       document.body.classList.remove("gn-pro-member");
       forms.style.display = "block";
       memberArea.style.display = "none";
+      profilePanel.style.display = "none";
       memberButton.textContent = "Login / Goal Pro";
       setMode(false);
     }
