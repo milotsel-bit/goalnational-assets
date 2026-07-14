@@ -40,7 +40,7 @@ const firebaseConfig = {
 };
 
 const CSS_URL =
-  "https://cdn.jsdelivr.net/gh/milotsel-bit/goalnational-assets@main/goal-auth-v4.css?v=1";
+  "https://cdn.jsdelivr.net/gh/milotsel-bit/goalnational-assets@main/goalnational-members.css?v=2";
 
 function loadStylesheet() {
   if (document.querySelector('link[data-gn-auth-css="true"]')) return;
