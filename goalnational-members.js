@@ -292,6 +292,11 @@ function startMemberSystem() {
     return data;
   }
 
+  async function openCustomerPortal() {
+  const data = await callGoalProBackend("/create-portal-session");
+  window.location.href = data.url;
+}
+
   const $ = (id) => document.getElementById(id);
 
   const memberButton = $("gnMemberButton");
@@ -455,13 +460,16 @@ function startMemberSystem() {
       verifyEmail.style.display = "block";
     }
 
-    if (isPremium) {
+   if (isPremium) {
   localStorage.setItem("gnMembershipPlan", "pro");
 
   membershipBadge.textContent = "GOALNATIONAL PRO";
   membershipBadge.style.background = "#f59e0b";
   membershipBadge.style.color = "#111827";
-  upgradeButton.style.display = "none";
+
+  upgradeButton.style.display = "block";
+  upgradeButton.textContent = "Manage Subscription";
+  upgradeButton.href = "#";
 
   document.body.classList.add("gn-pro-member");
 } else {
@@ -470,7 +478,10 @@ function startMemberSystem() {
   membershipBadge.textContent = "FREE MEMBER";
   membershipBadge.style.background = "#374151";
   membershipBadge.style.color = "#fff";
+
   upgradeButton.style.display = "block";
+  upgradeButton.textContent = "Upgrade to GoalNational Pro";
+  upgradeButton.href = "#";
 
   loadMonetagAds();
 }
@@ -861,35 +872,36 @@ function startMemberSystem() {
     }
   );
 
-  upgradeButton.addEventListener(
-    "click",
-    async (event) => {
-      event.preventDefault();
+  upgradeButton.addEventListener("click", async (event) => {
+  event.preventDefault();
 
-      setBusy(upgradeButton, true);
-      clearMessage();
+  setBusy(upgradeButton, true);
+  clearMessage();
 
-      try {
-        const data =
-          await callGoalProBackend(
-            "/create-checkout-session"
-          );
+  try {
 
-        window.location.href =
-          data.url;
-      } catch (error) {
-        console.error(error);
-
-        showMessage(
-          error.message ||
-            "Stripe Checkout could not be opened."
-        );
-      } finally {
-        setBusy(upgradeButton, false);
-      }
+    if (localStorage.getItem("gnMembershipPlan") === "pro") {
+      await openCustomerPortal();
+      return;
     }
-  );
 
+    const data = await callGoalProBackend("/create-checkout-session");
+
+    window.location.href = data.url;
+
+  } catch (error) {
+    console.error(error);
+
+    showMessage(
+      error.message ||
+      "Stripe could not be opened."
+    );
+
+  } finally {
+    setBusy(upgradeButton, false);
+  }
+});
+  
   logoutButton.addEventListener(
     "click",
     async () => {
