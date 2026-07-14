@@ -157,21 +157,7 @@
   margin: 18px 0;
 }
 
-/* Ads visible for guests and free members */
-body:not(.gn-pro-member) .gn-ad,
-body:not(.gn-pro-member) .adsbygoogle,
-body:not(.gn-pro-member) [data-ad-client],
-body:not(.gn-pro-member) .widget.AdSense,
-body:not(.gn-pro-member) .inline-ad {
-  display: block !important;
-}
-
-/* Ads hidden only for GoalNational Pro members */
-body.gn-pro-member .gn-ad,
-body.gn-pro-member .adsbygoogle,
-body.gn-pro-member [data-ad-client],
-body.gn-pro-member .widget.AdSense,
-body.gn-pro-member .inline-ad {
+body.gn-pro-member .gn-ad {
   display: none !important;
 }
 
