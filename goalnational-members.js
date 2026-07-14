@@ -42,6 +42,27 @@ const firebaseConfig = {
 const CSS_URL =
   "https://cdn.jsdelivr.net/gh/milotsel-bit/goalnational-assets@main/goalnational-members.css?v=3";
 
+const MONETAG_ZONE = "10959350";
+
+function loadMonetagAds() {
+  if (document.querySelector('script[data-gn-monetag="true"]')) {
+    return;
+  }
+
+  if (localStorage.getItem("gnMembershipPlan") === "pro") {
+    return;
+  }
+
+  const script = document.createElement("script");
+
+  script.dataset.zone = MONETAG_ZONE;
+  script.dataset.gnMonetag = "true";
+  script.src = "https://al5sm.com/tag.min.js";
+  script.async = true;
+
+  document.body.appendChild(script);
+}
+
 function loadStylesheet() {
   if (document.querySelector('link[data-gn-auth-css="true"]')) return;
 
@@ -450,6 +471,8 @@ function startMemberSystem() {
   membershipBadge.style.background = "#374151";
   membershipBadge.style.color = "#fff";
   upgradeButton.style.display = "block";
+
+  loadMonetagAds();
 }
 }
   
@@ -920,6 +943,8 @@ function startMemberSystem() {
           "gn-pro-member"
         );
         localStorage.setItem("gnMembershipPlan", "free");
+
+         loadMonetagAds();
 
         forms.style.display = "block";
         memberArea.style.display = "none";
