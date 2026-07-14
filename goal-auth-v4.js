@@ -1,6 +1,3 @@
-```javascript
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-
 import {
   getAuth,
   GoogleAuthProvider,
@@ -1014,4 +1011,3 @@ if (document.readyState === "loading") {
 } else {
   startMemberSystem();
 }
-```
