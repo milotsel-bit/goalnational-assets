@@ -299,6 +299,48 @@ function startMemberSystem() {
 
   const $ = (id) => document.getElementById(id);
 
+  function setMemberIdentity(displayName, isPremium) {
+  const finalName =
+    displayName ||
+    "GoalNational Member";
+
+  memberButton.textContent = "";
+  memberName.textContent = "";
+
+  const buttonName =
+    document.createTextNode(finalName);
+
+  const profileName =
+    document.createTextNode(finalName);
+
+  memberButton.appendChild(buttonName);
+  memberName.appendChild(profileName);
+
+  if (isPremium) {
+    const buttonBadge =
+      document.createElement("span");
+
+    buttonBadge.className =
+      "gnProNameBadge";
+
+    buttonBadge.textContent =
+      "PRO";
+
+    memberButton.appendChild(buttonBadge);
+
+    const profileBadge =
+      document.createElement("span");
+
+    profileBadge.className =
+      "gnProNameBadge";
+
+    profileBadge.textContent =
+      "PRO";
+
+    memberName.appendChild(profileBadge);
+  }
+}
+
   const memberButton = $("gnMemberButton");
   const overlay = $("gnAuthOverlay");
   const closeButton = $("gnAuthClose");
@@ -463,6 +505,11 @@ function startMemberSystem() {
    if (isPremium) {
   localStorage.setItem("gnMembershipPlan", "pro");
 
+       setMemberIdentity(
+  user.displayName || data.displayName,
+  true
+);
+
   membershipBadge.textContent = "GOALNATIONAL PRO";
   membershipBadge.style.background = "#f59e0b";
   membershipBadge.style.color = "#111827";
@@ -474,6 +521,11 @@ function startMemberSystem() {
   document.body.classList.add("gn-pro-member");
 } else {
   localStorage.setItem("gnMembershipPlan", "free");
+
+    setMemberIdentity(
+  user.displayName || data.displayName,
+  false
+);
 
   membershipBadge.textContent = "FREE MEMBER";
   membershipBadge.style.background = "#374151";
@@ -727,9 +779,6 @@ function startMemberSystem() {
 
         await loadMembership(user);
 
-        memberButton.textContent =
-          newName;
-
         showMessage(
           "Your profile was updated.",
           true
@@ -935,10 +984,6 @@ function startMemberSystem() {
 
           forms.style.display = "none";
           memberArea.style.display = "block";
-
-          memberButton.textContent =
-            user.displayName ||
-            "My Account";
             
           
         } catch (error) {
