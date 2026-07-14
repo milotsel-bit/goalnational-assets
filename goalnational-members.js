@@ -40,7 +40,7 @@ const firebaseConfig = {
 };
 
 const CSS_URL =
-  "https://cdn.jsdelivr.net/gh/milotsel-bit/goalnational-assets@main/goalnational-members.css?v=3";
+  "https://cdn.jsdelivr.net/gh/milotsel-bit/goalnational-assets@eff468a/goalnational-members.css";
 
 const MONETAG_ZONE = "10959350";
 
