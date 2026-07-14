@@ -233,60 +233,6 @@ function injectInterface() {
   );
 }
 
-let goalNationalAdsLoaded = false;
-
-function loadAds() {
-  if (goalNationalAdsLoaded) return;
-
-  if (document.body.classList.contains("gn-pro-member")) {
-    console.log("GoalNational: Pro member detected — ads disabled.");
-    return;
-  }
-
-  goalNationalAdsLoaded = true;
-
-  function injectAdScript(zone, source) {
-    const script = document.createElement("script");
-
-    script.dataset.zone = zone;
-    script.src = source;
-
-    script.onload = () => {
-      console.log(`GoalNational ad loaded: ${zone}`);
-    };
-
-    script.onerror = () => {
-      console.error(`GoalNational ad failed: ${zone}`);
-    };
-
-    const target =
-      [document.documentElement, document.body]
-        .filter(Boolean)
-        .pop();
-
-    target.appendChild(script);
-  }
-
-  injectAdScript(
-    "10959348",
-    "https://n6wxm.com/vignette.min.js"
-  );
-
-  injectAdScript(
-    "10959349",
-    "https://nap5k.com/tag.min.js"
-  );
-
-  injectAdScript(
-    "10959350",
-    "https://al5sm.com/tag.min.js"
-  );
-
-  console.log(
-    "GoalNational: ads activated for visitor or free member."
-  );
-}
-
 function startMemberSystem() {
   loadStylesheet();
   injectInterface();
@@ -489,34 +435,24 @@ function startMemberSystem() {
     }
 
     if (isPremium) {
-      membershipBadge.textContent =
-        "GOALNATIONAL PRO";
+  localStorage.setItem("gnMembershipPlan", "pro");
 
-      membershipBadge.style.background =
-        "#f59e0b";
+  membershipBadge.textContent = "GOALNATIONAL PRO";
+  membershipBadge.style.background = "#f59e0b";
+  membershipBadge.style.color = "#111827";
+  upgradeButton.style.display = "none";
 
-      membershipBadge.style.color =
-        "#111827";
+  document.body.classList.add("gn-pro-member");
+} else {
+  localStorage.setItem("gnMembershipPlan", "free");
 
-      upgradeButton.style.display = "none";
-
-      document.body.classList.add(
-        "gn-pro-member"
-      );
-    } else {
-      membershipBadge.textContent =
-        "FREE MEMBER";
-
-      membershipBadge.style.background =
-        "#374151";
-
-      membershipBadge.style.color =
-        "#fff";
-
-      upgradeButton.style.display = "block";
-    }
-  }
-
+  membershipBadge.textContent = "FREE MEMBER";
+  membershipBadge.style.background = "#374151";
+  membershipBadge.style.color = "#fff";
+  upgradeButton.style.display = "block";
+}
+}
+  
   async function reauthenticateCurrentUser() {
     const user = auth.currentUser;
 
@@ -968,14 +904,8 @@ function startMemberSystem() {
           memberButton.textContent =
             user.displayName ||
             "My Account";
-
-          if (
-            !document.body.classList.contains(
-              "gn-pro-member"
-            )
-          ) {
-            loadAds();
-          }
+            
+          
         } catch (error) {
           console.error(error);
 
@@ -983,12 +913,13 @@ function startMemberSystem() {
             "Your profile could not be loaded."
           );
 
-          loadAds();
+         
         }
       } else {
         document.body.classList.remove(
           "gn-pro-member"
         );
+        localStorage.setItem("gnMembershipPlan", "free");
 
         forms.style.display = "block";
         memberArea.style.display = "none";
@@ -999,7 +930,7 @@ function startMemberSystem() {
 
         setMode(false);
 
-        loadAds();
+      
       }
     }
   );
@@ -1013,3 +944,4 @@ if (document.readyState === "loading") {
 } else {
   startMemberSystem();
 }
+  
